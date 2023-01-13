@@ -21,7 +21,7 @@
             }
 
             public function register($log, $pass, $mail, $prenom, $nom){
-                $mysqli = new mysqli("localhost", "root", "", "classes");
+                global $mysqli;
                 $sql = "INSERT INTO utilisateurs (login, password, email, firstname, lastname) VALUES ('$log', '$pass', '$mail', '$prenom', '$nom')";
                 if (mysqli_query($mysqli, $sql)) {
                     echo "Nouveau enregistrement créé avec succès";
@@ -38,7 +38,7 @@
                 $this->login = $log;
                 $this->password = $pass;
 
-                $mysqli = new mysqli("localhost", "root", "", "classes");
+                global $mysqli;
                 $sql = "SELECT login, password, email, firstname, lastname FROM utilisateurs";
                 
                 $result = $mysqli->query($sql);
@@ -49,8 +49,10 @@
                     $this->lastname = $row["lastname"];
                     //echo "mail " . $email . " prenom " . $firstname . " nom " . $lastname;
                     }
-                  }
-                
+                }
+
+                $_SESSION['user'] = $this->getFirstname();
+
             }
 
             public function disconnect(){
@@ -59,11 +61,14 @@
                 $this->email = "";
                 $this->firstname = "";
                 $this->lastname = "";
+
+                unset($_SESSION['user']);
+                session_destroy();
                 
             }
 
             public function delete(){
-                $mysqli = new mysqli("localhost", "root", "", "classes");
+                global $mysqli;
                 $sql = "DELETE FROM utilisateurs WHERE login = '$this->login'";
 
                 $mysqli->query($sql);
@@ -73,10 +78,12 @@
                 $this->email = "";
                 $this->firstname = "";
                 $this->lastname = "";
+                unset($_SESSION['user']);
+                session_destroy();
             }
 
             public function update($login, $password, $email, $firstname, $lastname){
-                $mysqli = new mysqli("localhost", "root", "", "classes");
+                global $mysqli;
                 $sql = "UPDATE utilisateurs 
                 SET login = '$login', password = '$password', email = '$email', firstname = '$firstname', lastname = '$lastname'
                 WHERE login = '$this->login'";
@@ -85,11 +92,16 @@
             }
 
             public function isConnected(){
-                
+                if($_SESSION['user'] == $this->firstname){
+                    return true;
+                }
+                else{
+                    return false;
+                }
             }
 
             public function getAllInfos(){
-                $mysqli = new mysqli("localhost", "root", "", "classes");
+                global $mysqli;
                 $sql = "SELECT login, password, email, firstname, lastname FROM utilisateurs";
 
                 $result = $mysqli->query($sql);
@@ -124,14 +136,28 @@
             
         }
 
+
+        if (!isset($_SESSION['user'])){
+            $_SESSION['user'] = "";
+            session_start();
+            
+        }
+
+
         $test = new User();
 
         //$test->register('nerok', '1234', 'mail@gmail.com', 'nicolas', 'panis');
 
         $test->connect('nerok', '1234');
+        echo "Bonjour " . $_SESSION['user'];
+        echo $test->isConnected();
         $test->disconnect();
+        
+
+        echo "<br />";
 
         $test->connect('test', '1234');
+        echo "Bonjour " . $_SESSION['user'];
         //$test->delete();
 
         $infos = $test->getAllInfos();

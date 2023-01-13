@@ -21,7 +21,7 @@
             }
 
             public function register($log, $pass, $mail, $prenom, $nom){
-                $pdo = new PDO("mysql:host=localhost;dbname=classes", 'root', '');
+                global $pdo;
 
                 $sql = "INSERT INTO utilisateurs (login, password, email, firstname, lastname) VALUES (:login, :password, :email, :firstname, :lastname)";
                 $envoi = $pdo->prepare($sql);
@@ -39,7 +39,7 @@
                 $this->login = $log;
                 $this->password = $pass;
 
-                $pdo = new PDO("mysql:host=localhost;dbname=classes", 'root', '');
+                global $pdo;
                 $sql = "SELECT login, password, email, firstname, lastname FROM utilisateurs";
                 $envoi = $pdo->prepare($sql);
                 $envoi->execute();
@@ -54,7 +54,7 @@
                     }
                   }
 
-                
+                  $_SESSION['user'] = $this->getFirstname();
                 
             }
 
@@ -64,11 +64,14 @@
                 $this->email = "";
                 $this->firstname = "";
                 $this->lastname = "";
+
+                unset($_SESSION['user']);
+                session_destroy();
                 
             }
 
             public function delete(){
-                $pdo = new PDO("mysql:host=localhost;dbname=classes", 'root', '');
+                global $pdo;
                 $sql = "DELETE FROM utilisateurs WHERE login = :login";
 
                 $envoi = $pdo->prepare($sql);
@@ -79,10 +82,12 @@
                 $this->email = "";
                 $this->firstname = "";
                 $this->lastname = "";
+                unset($_SESSION['user']);
+                session_destroy();
             }
 
             public function update($login, $password, $email, $firstname, $lastname){
-                $pdo = new PDO("mysql:host=localhost;dbname=classes", 'root', '');
+                global $pdo;
                 $sql = "UPDATE utilisateurs 
                 SET login = '$login', password = '$password', email = '$email', firstname = '$firstname', lastname = '$lastname'
                 WHERE login = '$this->login'";
@@ -93,7 +98,12 @@
             }
 
             public function isConnected(){
-                
+                if($_SESSION['user'] == $this->firstname){
+                    return true;
+                }
+                else{
+                    return false;
+                }
             }
 
             public function getAllInfos(){
@@ -124,6 +134,8 @@
         //$test->register('nerok', '1234', 'mail@gmail.com', 'nicolas', 'panis');
 
         $test->connect('nerok', '1234');
+        echo "Bonjour " . $_SESSION['user'];
+        //echo $test->isConnected();
         $test->disconnect();
 
         $test->connect('test', '1234');
